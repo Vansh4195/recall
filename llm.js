@@ -9,7 +9,7 @@
 export const PROVIDERS = {
   anthropic: {
     label: 'Anthropic (Claude)',
-    defaultModel: 'claude-opus-4-8',
+    defaultModel: 'claude-sonnet-4-6',
     models: [
       'claude-opus-4-8',
       'claude-sonnet-4-6',

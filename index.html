@@ -7,8 +7,7 @@
   <meta name="description" content="Turn topics, notes, or PDFs into flashcards and quizzes, then review with spaced repetition. Runs in your browser with your own API key." />
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>" />
-  <!-- pdf.js for in-browser PDF text extraction -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
+  <!-- pdf.js is loaded on demand from app.js (dynamic import) for in-browser PDF text extraction -->
 </head>
 <body>
   <header class="topbar">

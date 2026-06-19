@@ -12,11 +12,17 @@ import {
   GRADES,
 } from './srs.js';
 
-// --- pdf.js worker setup -----------------------------------------------------
-// The lib is loaded as a module in index.html and attaches to window.
+// --- pdf.js loader -----------------------------------------------------------
+// pdf.js ships as an ES module that does NOT attach to window, so we import it
+// on demand and configure its worker. Cached after the first load.
 const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168';
-function pdfjs() {
-  return window.pdfjsLib || (window['pdfjs-dist/build/pdf'] || null);
+let _pdfjs = null;
+async function loadPdfjs() {
+  if (_pdfjs) return _pdfjs;
+  const lib = await import(/* @vite-ignore */ `${PDFJS_CDN}/pdf.min.mjs`);
+  lib.GlobalWorkerOptions.workerSrc = `${PDFJS_CDN}/pdf.worker.min.mjs`;
+  _pdfjs = lib;
+  return lib;
 }
 
 // --- IndexedDB ---------------------------------------------------------------
@@ -355,9 +361,7 @@ function renderCreate() {
 }
 
 async function extractPdfText(file) {
-  const lib = pdfjs();
-  if (!lib) throw new Error('PDF library not loaded yet.');
-  lib.GlobalWorkerOptions.workerSrc = `${PDFJS_CDN}/pdf.worker.min.mjs`;
+  const lib = await loadPdfjs();
   const buf = await file.arrayBuffer();
   const pdf = await lib.getDocument({ data: buf }).promise;
   let out = '';
