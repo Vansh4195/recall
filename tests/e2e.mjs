@@ -12,13 +12,18 @@
 //
 // Usage:
 //   GEMINI_API_KEY=AIza... node tests/e2e.mjs
+//   GEMINI_API_KEY=AIza... GEMINI_MODEL=gemini-2.5-flash node tests/e2e.mjs
 //
 // Get a free key at https://aistudio.google.com/apikey
 // If GEMINI_API_KEY is unset, the test prints SKIP and exits 0.
+//
+// Default model is gemini-2.0-flash. If your key's project has retired that
+// model (Gemini returns a 404 "no longer available"), set GEMINI_MODEL to a
+// current free model such as gemini-2.5-flash.
 
 const ENDPOINT =
   'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
-const MODEL = 'gemini-2.0-flash';
+const MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 
 function fail(reason) {
   console.error(`FAIL: ${reason}`);
