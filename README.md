@@ -18,7 +18,7 @@ Recall does not ship with any key and has no server to hold one. You paste your 
 
 Both providers are supported:
 
-- **Anthropic** — uses the Messages API with the `anthropic-dangerous-direct-browser-access` header so the request can be made from a browser. Get a key at https://console.anthropic.com/. Default model: `claude-opus-4-8`.
+- **Anthropic** — uses the Messages API with the `anthropic-dangerous-direct-browser-access` header so the request can be made from a browser. Get a key at https://console.anthropic.com/. Default model: `claude-sonnet-4-6`.
 - **OpenAI** — uses the Chat Completions API. Get a key at https://platform.openai.com/. Default model: `gpt-4o`.
 
 A note on browser keys: calling a provider directly from the browser exposes your key to anyone with access to that browser session, and it counts against your own usage/billing. That trade-off is the whole point of a BYO-key, no-backend tool — keep the key to a personal machine and rotate it if you're unsure.
