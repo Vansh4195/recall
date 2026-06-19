@@ -16,10 +16,11 @@ An AI study tool that turns any topic, your pasted notes, or a PDF into flashcar
 
 Recall does not ship with any key and has no server to hold one. You paste your own key in Settings; it is stored in your browser's `localStorage` and sent directly from the browser to the provider you chose. It is never transmitted anywhere else.
 
-Both providers are supported:
+Three providers are supported:
 
 - **Anthropic** — uses the Messages API with the `anthropic-dangerous-direct-browser-access` header so the request can be made from a browser. Get a key at https://console.anthropic.com/. Default model: `claude-sonnet-4-6`.
 - **OpenAI** — uses the Chat Completions API. Get a key at https://platform.openai.com/. Default model: `gpt-4o`.
+- **Gemini (free)** — uses Google's OpenAI-compatible Chat Completions endpoint (same request shape as OpenAI, different base URL). Google offers a generous free tier, so this is the cheapest way to try Recall. Get a free key at https://aistudio.google.com/apikey. Default model: `gemini-2.0-flash`. The endpoint returns permissive CORS headers, so it works directly from the browser like the other providers.
 
 A note on browser keys: calling a provider directly from the browser exposes your key to anyone with access to that browser session, and it counts against your own usage/billing. That trade-off is the whole point of a BYO-key, no-backend tool — keep the key to a personal machine and rotate it if you're unsure.
 
@@ -35,6 +36,21 @@ python3 -m http.server 8000
 ```
 
 Any static file server works (`npx serve`, `php -S localhost:8000`, etc.).
+
+## Test for free with Gemini
+
+You can verify Recall's LLM request/parse logic against a real model at ~zero cost using Google Gemini's free tier.
+
+1. Get a free API key at https://aistudio.google.com/apikey.
+2. Run the end-to-end test (requires Node 18+ for the built-in `fetch`):
+
+```sh
+GEMINI_API_KEY=AIza... node tests/e2e.mjs
+```
+
+It makes one tiny real call (capped at 20 tokens) through the same OpenAI-compatible request/response shape the app uses, pointed at Gemini's `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` endpoint, and prints `PASS` (exit 0) or `FAIL: <reason>` (exit non-zero). If `GEMINI_API_KEY` is unset it prints `SKIP` and exits 0. Because it's a plain Node script (no browser), there is no CORS concern — this is the reliable free path.
+
+To use Gemini inside the app, pick **Gemini (free)** in Settings and paste the same key.
 
 ## How the spaced repetition works
 
@@ -53,8 +69,9 @@ The next due date is `now + interval`. On each session, the review queue is what
 index.html      markup and the loaded libraries (pdf.js)
 styles.css      the full UI (monochrome, responsive)
 app.js          state, IndexedDB persistence, routing, rendering
-llm.js          provider abstraction (Anthropic + OpenAI), prompt building
+llm.js          provider abstraction (Anthropic + OpenAI + Gemini), prompt building
 srs.js          the SM-2 scheduler
+tests/e2e.mjs   free end-to-end LLM test (Gemini, OpenAI-compatible endpoint)
 ```
 
 ## Limitations
