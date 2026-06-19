@@ -25,6 +25,29 @@ export const PROVIDERS = {
     keyHint: 'sk-...',
     keyUrl: 'https://platform.openai.com/api-keys',
   },
+  // Google Gemini via its OpenAI-compatible endpoint — same request/response
+  // shape as OpenAI, just a different base URL. Gemini has a generous free tier,
+  // so this is the cheapest way to try Recall (and the path the E2E test uses).
+  // The endpoint returns permissive CORS headers (it echoes the request Origin),
+  // so it works directly from the browser like the other providers.
+  gemini: {
+    label: 'Gemini (free)',
+    defaultModel: 'gemini-2.0-flash',
+    models: [
+      'gemini-2.0-flash',
+      'gemini-2.0-flash-lite',
+      'gemini-1.5-flash',
+      'gemini-1.5-pro',
+    ],
+    keyHint: 'AIza...',
+    keyUrl: 'https://aistudio.google.com/apikey',
+  },
+};
+
+// OpenAI-compatible chat-completions base URLs, keyed by provider.
+const OPENAI_COMPATIBLE_BASE = {
+  openai: 'https://api.openai.com/v1',
+  gemini: 'https://generativelanguage.googleapis.com/v1beta/openai',
 };
 
 // --- low-level chat call -----------------------------------------------------
@@ -61,11 +84,14 @@ async function chat({ provider, apiKey, model, system, messages, maxTokens = 409
     return text;
   }
 
-  if (provider === 'openai') {
+  // OpenAI and Gemini share the OpenAI Chat Completions request/response shape;
+  // they differ only in the base URL (see OPENAI_COMPATIBLE_BASE).
+  const base = OPENAI_COMPATIBLE_BASE[provider];
+  if (base) {
     const oaMessages = system
       ? [{ role: 'system', content: system }, ...messages]
       : messages;
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    const res = await fetch(`${base}/chat/completions`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
@@ -79,7 +105,8 @@ async function chat({ provider, apiKey, model, system, messages, maxTokens = 409
     });
     const data = await res.json();
     if (!res.ok) {
-      throw new Error(providerError(data) || `OpenAI error ${res.status}`);
+      const label = provider === 'gemini' ? 'Gemini' : 'OpenAI';
+      throw new Error(providerError(data) || `${label} error ${res.status}`);
     }
     return data.choices?.[0]?.message?.content || '';
   }
@@ -89,8 +116,10 @@ async function chat({ provider, apiKey, model, system, messages, maxTokens = 409
 
 function providerError(data) {
   if (!data) return null;
-  if (data.error) {
-    return typeof data.error === 'string' ? data.error : data.error.message;
+  // Gemini's OpenAI-compatible endpoint wraps errors in an array: [{ error: {...} }].
+  const obj = Array.isArray(data) ? data[0] : data;
+  if (obj && obj.error) {
+    return typeof obj.error === 'string' ? obj.error : obj.error.message;
   }
   return null;
 }
